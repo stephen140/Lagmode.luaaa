@@ -1,0 +1,107 @@
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+-- FPS logic
+local fpsEnabled = false
+local lagMode = false
+
+local NORMAL_FPS = 60
+local LAG_FPS = 1
+
+local MaxFPS = NORMAL_FPS
+local frameTime = 1 / MaxFPS
+local lastFrame = os.clock()
+
+RunService.RenderStepped:Connect(function()
+	if not fpsEnabled then return end
+
+	local now = os.clock()
+	local delta = now - lastFrame
+
+	if delta < frameTime then
+		task.wait(frameTime - delta)
+	end
+
+	lastFrame = os.clock()
+end)
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "LagModeGui"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromScale(0.85, 0.4)
+frame.Position = UDim2.fromScale(0.075, 0.3)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.Parent = gui
+frame.Active = true
+frame.Draggable = true
+
+Instance.new("UICorner", frame)
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.fromScale(1, 0.2)
+title.BackgroundTransparency = 1
+title.Text = "LAG MODE"
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.TextColor3 = Color3.new(1,1,1)
+title.Parent = frame
+
+-- Toggle FPS Cap
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.fromScale(0.9, 0.25)
+toggle.Position = UDim2.fromScale(0.05, 0.25)
+toggle.Text = "FPS CAP: OFF"
+toggle.TextScaled = true
+toggle.Font = Enum.Font.Gotham
+toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+toggle.TextColor3 = Color3.new(1,1,1)
+toggle.Parent = frame
+Instance.new("UICorner", toggle)
+
+toggle.MouseButton1Click:Connect(function()
+	fpsEnabled = not fpsEnabled
+	lagMode = false
+	MaxFPS = NORMAL_FPS
+	frameTime = 1 / MaxFPS
+	toggle.Text = fpsEnabled and "FPS CAP: ON" or "FPS CAP: OFF"
+	lastFrame = os.clock()
+end)
+
+-- LAG MODE BUTTON (1 FPS)
+local lagButton = Instance.new("TextButton")
+lagButton.Size = UDim2.fromScale(0.9, 0.25)
+lagButton.Position = UDim2.fromScale(0.05, 0.55)
+lagButton.Text = "LAG MODE: OFF"
+lagButton.TextScaled = true
+lagButton.Font = Enum.Font.GothamBold
+lagButton.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
+lagButton.TextColor3 = Color3.new(1,1,1)
+lagButton.Parent = frame
+Instance.new("UICorner", lagButton)
+
+lagButton.MouseButton1Click:Connect(function()
+	lagMode = not lagMode
+	fpsEnabled = true
+
+	if lagMode then
+		MaxFPS = LAG_FPS
+		lagButton.Text = "LAG MODE: ON (1 FPS)"
+		lagButton.BackgroundColor3 = Color3.fromRGB(170, 40, 40)
+		toggle.Text = "FPS CAP: ON"
+	else
+		MaxFPS = NORMAL_FPS
+		lagButton.Text = "LAG MODE: OFF"
+		lagButton.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
+	end
+
+	frameTime = 1 / MaxFPS
+	lastFrame = os.clock()
+end) 
